@@ -104,13 +104,35 @@
     let imagenUrlSubida = ""; // URL resultante tras subir a Drive
 
     // ── Login ─────────────────────────────────────────────
-    function login() {
+    async function login() {
       const clave = document.getElementById("inp-clave").value;
       if (!clave) { setMsg("msg-login", "Ingresa la contraseña.", "err"); return; }
-      claveAdmin = clave;
-      document.getElementById("screen-login").style.display = "none";
-      document.getElementById("screen-admin").style.display = "block";
-      cargarProductos();
+      
+      const btn = document.querySelector("#screen-login button");
+      btn.disabled = true;
+      setMsg("msg-login", "⏳ Verificando credenciales...", "");
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({ accion: "verificarClave", clave })
+        });
+        const data = await res.json();
+        
+        if (data.ok) {
+          claveAdmin = clave;
+          document.getElementById("screen-login").style.display = "none";
+          document.getElementById("screen-admin").style.display = "block";
+          cargarProductos();
+        } else {
+          setMsg("msg-login", data.mensaje, "err");
+        }
+      } catch (err) {
+        setMsg("msg-login", "Error al conectar: " + err.message, "err");
+      }
+      
+      btn.disabled = false;
     }
 
     function logout() {
