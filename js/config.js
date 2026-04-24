@@ -1,4 +1,4 @@
 window.GARAJE_CONFIG = {
-  API_URL: "https://script.google.com/macros/s/AKfycbzaIVzR6P4Rkz4BO_0vuC2CqBdQbpO07R7p5sM6q_uicdV75ON6N3iyxb85AHiAP4lg/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbw_twsB80wVdLofdq0f0RylymlfjNhllWHwdnet8F83MqaNBwS4BG6ROqkP9M1lShQC/exec",
   REQUEST_TIMEOUT_MS: 15000
 };
