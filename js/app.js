@@ -4,7 +4,7 @@
  */
 
 // ── CONFIGURACIÓN ─────────────────────────────────────────
-const API_URL = "https://script.google.com/macros/s/AKfycbznNuW0BXjgS5kpPohdCtzncAIi_uUZxeIDW3yxEuSz3DAwC56yp53DCJeHSlEMLyB1Gg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzaIVzR6P4Rkz4BO_0vuC2CqBdQbpO07R7p5sM6q_uicdV75ON6N3iyxb85AHiAP4lg/exec";
 
 // ── Estado global ──────────────────────────────────────────
 let productosMap = {}; // Mapa id → producto para evitar pasar JSON como atributo HTML
