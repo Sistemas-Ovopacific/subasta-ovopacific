@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🏪 Tienda Rápida - Próximamente</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Estilos adicionales para el contador integrado */
+    .countdown-bar {
+      background: linear-gradient(to right, #17324d, #0b5fff);
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-size: 1.6rem;
+      font-weight: 800;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 3px solid var(--accent);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .countdown-item { 
+      font-family: 'Courier New', monospace; 
+      color: #38bdf8;
+      background: rgba(0,0,0,0.3);
+      padding: 5px 15px;
+      border-radius: 8px;
+      font-size: 2.2rem;
+      letter-spacing: 2px;
+    }
+    .btn-locked {
+      margin: 0 18px 18px;
+      padding: 13px;
+      border: 1px solid #d1d5db;
+      background: #f3f4f6;
+      color: #9ca3af;
+      border-radius: 10px;
+      font-weight: 700;
+      text-align: center;
+      cursor: not-allowed;
+    }
+    .card-img-wrap img { cursor: zoom-in; }
+
+    /* ── Lightbox (Vista previa de imagen) ── */
+    .lightbox-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200;
+      backdrop-filter: blur(8px);
+      padding: 20px;
+      cursor: zoom-out;
+      animation: fadeIn 0.3s ease;
+    }
+    .hidden { display: none !important; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .lightbox-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .lightbox-content img {
+      max-width: 100%;
+      max-height: 90vh;
+      border-radius: 8px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      transform: scale(0.95);
+      animation: zoomIn 0.3s ease forwards;
+    }
+    @keyframes zoomIn { to { transform: scale(1); } }
+
+    .lightbox-close {
+      position: absolute; top: -40px; right: 0;
+      background: transparent; border: none; color: #fff;
+      font-size: 2rem; cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .lightbox-close:hover { transform: scale(1.2); }
+  </style>
+</head>
+<body>
+
+  <!-- Header (Igual que index.html) -->
+  <header>
+    <div class="header-inner">
+      <div class="logo">⚡ Tienda Rápida</div>
+      <p class="tagline">El más rápido se lleva el producto</p>
+    </div>
+  </header>
+
+  <!-- Barra de Cuenta Regresiva -->
+  <div class="countdown-bar">
+    <span>Abre en:</span>
+    <span id="countdown-timer" class="countdown-item">00:00:00:00</span>
+  </div>
+
+  <div class="toolbar">
+    <div class="stats">
+      <span id="stat-disponibles">— por llegar</span>
+      <span id="stat-vendidos">Prepárate</span>
+    </div>
+  </div>
+
+  <!-- Grid de productos -->
+  <main id="preview-catalogo">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Cargando pre-estreno...</p>
+    </div>
+  </main>
+
+  <!-- Lightbox de Imágenes -->
+  <div id="lightbox-overlay" class="lightbox-overlay hidden" onclick="cerrarLightbox(event)">
+    <div class="lightbox-content">
+      <button class="lightbox-close" onclick="_cerrarLightbox()">✕</button>
+      <img id="lightbox-img" src="" alt="Vista previa" />
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script>
+    /* ============================================================ */
+    /* AJUSTA LA FECHA DE APERTURA AQUÍ                             */
+    /* Formato: "Año-Mes-DíaTHora:Minuto:Segundo"                     */
+    /* ============================================================ */
+    const FECHA_APERTURA = "2026-04-27T07:30:00"; 
+    
+    const OPENING_TIME = new Date(FECHA_APERTURA).getTime();
+
+    function updateTimer() {
+      const now = new Date().getTime();
+      const diff = OPENING_TIME - now;
+
+      if (diff <= 0) {
+        // Redirigir a la tienda principal cuando termine
+        window.location.href = "index.html";
+        return;
+      }
+
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+      document.getElementById("countdown-timer").textContent = 
+        `${d}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+    }
+
+    setInterval(updateTimer, 1000);
+    updateTimer();
+
+    async function loadPreview() {
+      const container = document.getElementById("preview-catalogo");
+      try {
+        const res = await fetch(window.GARAJE_CONFIG.API_URL);
+        const data = await res.json();
+        if (!data.ok) throw new Error();
+
+        container.innerHTML = data.productos.map(p => {
+          return `
+            <div class="card">
+              <div class="card-img-wrap">
+                <img src="${p.imagenUrl || ''}" alt="${p.nombre}" 
+                     onclick="abrirLightbox('${p.imagenUrl}')"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <span class="img-placeholder" style="display:none">🛍️</span>
+              </div>
+              <span class="badge badge-disponible">Próximamente</span>
+              <div class="card-body">
+                <h3>${p.nombre}</h3>
+                <p class="card-desc">${p.descripcion || "—"}</p>
+                <div class="stock-line"><span>${p.cantidadDisponible} unidades</span></div>
+                <p class="card-precio">$${Number(p.precio).toLocaleString()}</p>
+              </div>
+              <div class="btn-locked">🔒 Bloqueado</div>
+            </div>
+          `;
+        }).join("");
+      } catch (err) {
+        container.innerHTML = `<div class="loading"><p>Error al cargar la preventa.</p></div>`;
+      }
+    }
+
+    /* ── Lógica de Lightbox ── */
+    function abrirLightbox(url) {
+      if (!url) return;
+      const overlay = document.getElementById("lightbox-overlay");
+      const img = document.getElementById("lightbox-img");
+      img.src = url;
+      overlay.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
+
+    function cerrarLightbox(event) {
+      if (event && event.target.id !== "lightbox-overlay") return;
+      _cerrarLightbox();
+    }
+
+    function _cerrarLightbox() {
+      document.getElementById("lightbox-overlay").classList.add("hidden");
+      document.getElementById("lightbox-img").src = "";
+      document.body.style.overflow = "";
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") _cerrarLightbox();
+    });
+
+    loadPreview();
+  </script>
+</body>
+</html>
