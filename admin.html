@@ -344,7 +344,10 @@
               <td>${p.imagenUrl ? `<img src="${p.imagenUrl}" onerror="this.style.display='none'">` : `<div class="no-img">🛍️</div>`}</td>
               <td><strong>${escHtml(p.nombre)}</strong><br><small style="color:var(--text-muted)">${escHtml(p.descripcion) || ''}</small></td>
               <td>${formatCOP(p.precio)}</td>
-              <td><span class="status-dot ${p.estado === 'Vendido' ? 'dot-sold' : 'dot-ok'}"></span>${p.estado}</td>
+              <td>
+                <span class="status-dot ${p.estado === 'Vendido' ? 'dot-sold' : 'dot-ok'}"></span>${p.estado}
+                ${p.estado === 'Vendido' && p.comprador ? `<br><small style="color:var(--text-muted)">🙋‍♂️ ${escHtml(p.comprador)} (${escHtml(p.cedula)})<br>🕒 ${p.fecha}</small>` : ''}
+              </td>
               <td>${p.estado === 'Vendido' ? `<button class="btn-sm btn-reset" onclick="resetear(${p.rowIndex})">🔄 Resetear</button>` : '—'}</td>
             </tr>`).join("")}
         </tbody>
