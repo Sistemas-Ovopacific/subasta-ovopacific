@@ -76,6 +76,7 @@ function renderizarProductos(productos) {
     const rowIndex = Number.isFinite(p.rowIndex) ? p.rowIndex : 0;
     const imgHtml = p.imagenUrl
       ? `<img src="${escAttr(p.imagenUrl)}" alt="${escAttr(p.nombre)}" loading="lazy" decoding="async"
+             onclick="abrirLightbox('${escAttr(p.imagenUrl)}')"
              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
       : "";
     const placeholder = `<span class="img-placeholder" style="display:${p.imagenUrl ? "none" : "flex"}">🛍️</span>`;
@@ -211,6 +212,26 @@ function _cerrarModal() {
   window._productoSeleccionado = null;
 }
 
+function abrirLightbox(url) {
+  if (!url) return;
+  const overlay = document.getElementById("lightbox-overlay");
+  const img = document.getElementById("lightbox-img");
+  img.src = url;
+  overlay.classList.remove("hidden");
+  document.body.style.overflow = "hidden"; // Evitar scroll al ver imagen
+}
+
+function cerrarLightbox(event) {
+  if (event && event.target.id !== "lightbox-overlay") return;
+  _cerrarLightbox();
+}
+
+function _cerrarLightbox() {
+  document.getElementById("lightbox-overlay").classList.add("hidden");
+  document.getElementById("lightbox-img").src = "";
+  document.body.style.overflow = "";
+}
+
 async function confirmarCompra() {
   const producto = window._productoSeleccionado;
   if (!producto) {
@@ -273,7 +294,10 @@ async function confirmarCompra() {
 }
 
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") _cerrarModal();
+  if (e.key === "Escape") {
+    _cerrarModal();
+    _cerrarLightbox();
+  }
 });
 
 async function apiGet() {
