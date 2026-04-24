@@ -90,6 +90,13 @@
           <p style="color:var(--text-muted);text-align:center">Cargando...</p>
         </div>
       </div>
+
+      <div class="panel">
+        <h2>💰 Historial de Ventas</h2>
+        <div id="ventas-wrap">
+          <p style="color:var(--text-muted);text-align:center">Cargando ventas...</p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -121,7 +128,7 @@
           claveAdmin = clave;
           document.getElementById("screen-login").style.display = "none";
           document.getElementById("screen-admin").style.display = "block";
-          await cargarProductos();
+          await Promise.all([cargarProductos(), cargarVentas()]);
         } else {
           setMsg("msg-login", data.mensaje || "Contraseña incorrecta.", "err");
         }
@@ -315,6 +322,43 @@
         wrap.innerHTML = `<p style="color:var(--red)"></p>`;
         wrap.querySelector("p").textContent = "Error: " + e.message;
       }
+    }
+
+    async function cargarVentas() {
+      const wrap = document.getElementById("ventas-wrap");
+      try {
+        const data = await apiPost({ accion: "listarVentas", clave: claveAdmin });
+        if (!data.ok) throw new Error(data.mensaje || "Error al cargar ventas");
+        renderVentas(data.ventas || []);
+      } catch (e) {
+        wrap.innerHTML = `<p style="color:var(--red)">Error: ${e.message}</p>`;
+      }
+    }
+
+    function renderVentas(ventas) {
+      const wrap = document.getElementById("ventas-wrap");
+      if (!ventas.length) {
+        wrap.innerHTML = `<p style="color:var(--text-muted);text-align:center">Aún no hay ventas registradas.</p>`;
+        return;
+      }
+
+      wrap.innerHTML = `
+      <table class="product-table">
+        <thead><tr>
+          <th>Fecha</th><th>Producto</th><th>Cant.</th><th>Total</th><th>Comprador</th>
+        </tr></thead>
+        <tbody>
+          ${ventas.map(v => `
+            <tr>
+              <td><small>${escHtml(v.fecha)}</small></td>
+              <td><strong>${escHtml(v.producto)}</strong><br><small style="color:var(--text-muted)">ID: ${escHtml(v.idProducto)}</small></td>
+              <td>${v.cantidad}</td>
+              <td>${formatCOP(v.total)}</td>
+              <td><strong>${escHtml(v.comprador)}</strong><br><small style="color:var(--text-muted)">${escHtml(v.cedula)}</small></td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>`;
     }
 
     async function cargarProductosAdmin() {

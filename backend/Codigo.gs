@@ -119,6 +119,7 @@ function doPost(e) {
 
     if (accion === 'verificarClave') return json_({ ok: isAdmin_(body.clave) });
     if (accion === 'listarAdmin') return listAdmin_(body);
+    if (accion === 'listarVentas') return listPurchases_(body);
     if (accion === 'compra') return comprar_(body);
     if (accion === 'agregarProducto') return agregarProducto_(body);
     if (accion === 'subirImagen') return subirImagen_(body);
@@ -136,6 +137,26 @@ function listAdmin_(body) {
     ok: true,
     productos: listProducts_(true)
   });
+}
+
+function listPurchases_(body) {
+  requireAdmin_(body.clave);
+  const sheet = getPurchasesSheet_();
+  const lastRow = sheet.getLastRow();
+  const values = lastRow < 2 ? [] : sheet.getRange(2, 1, lastRow - 1, PURCHASE_HEADERS.length).getValues();
+
+  const ventas = values.map((row) => ({
+    fecha: formatDate_(row[0]),
+    idProducto: String(row[1] || ''),
+    producto: String(row[2] || ''),
+    cantidad: row[3],
+    precio: row[4],
+    total: row[5],
+    comprador: String(row[6] || ''),
+    cedula: String(row[7] || '')
+  })).reverse(); // Mas recientes primero
+
+  return json_({ ok: true, ventas });
 }
 
 function comprar_(body) {
