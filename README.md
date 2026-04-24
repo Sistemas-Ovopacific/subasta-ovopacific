@@ -1,96 +1,44 @@
-# 🏪 Catálogo de Compras Rápido
+# Venta de garaje Ovopacific
 
-Sistema de catálogo "el más rápido gana" construido con Google Sheets como base de datos, Google Apps Script como API y una página web estática como frontend.
+Frontend estatico para GitHub Pages con backend en Google Apps Script y Google Sheets.
 
-## Arquitectura
+## Estructura
 
-```
-┌──────────────────┐     fetch/POST      ┌──────────────────────┐
-│  Frontend (Git)  │ ─────────────────►  │  Google Apps Script  │
-│  index.html      │                     │  (Web App / API)     │
-│  style.css       │ ◄─────────────────  │  Lee/escribe en      │
-│  app.js          │     JSON response   │  Google Sheets       │
-└──────────────────┘                     └──────────────────────┘
-```
-
-## Estructura de carpetas
-
-```
-m,mmm/
+```text
+.
 ├── backend/
-│   └── Codigo.gs           ← Pegar en Google Apps Script
-├── frontend/
-│   ├── index.html
-│   ├── style.css
-│   └── app.js
-└── README.md
+│   └── Codigo.gs        # Codigo que se pega en Google Apps Script
+├── css/
+├── js/
+│   ├── app.js
+│   └── config.js        # URL del Web App de Apps Script
+├── admin.html
+├── index.html
+└── AUDITORIA.md
 ```
 
----
+## Instalacion del backend
 
-## ⚙️ Instalación paso a paso
+1. Abre la hoja de calculo en Google Sheets.
+2. Ve a `Extensiones > Apps Script`.
+3. Pega el contenido de `backend/Codigo.gs`.
+4. Ejecuta `inicializarHoja()`.
+5. Configura la clave del admin con el menu `Venta de garaje > Configurar clave admin`, o crea una propiedad del script llamada `ADMIN_PASSWORD`.
+6. Implementa como `App web`:
+   - Ejecutar como: `Yo`.
+   - Acceso: `Cualquier persona`.
+7. Copia la URL del Web App y ponla en `js/config.js`.
 
-### PASO 1 — Configurar el Backend (Google Apps Script)
+Si el Apps Script no esta ligado directamente a la hoja, crea una propiedad del script `SPREADSHEET_ID` con el ID del Google Sheet.
 
-1. Abre tu **Google Sheets** → `Extensiones` → `Apps Script`
-2. Borra el código existente y pega el contenido de `backend/Codigo.gs`
-3. Guarda con `Ctrl+S` y ponle un nombre al proyecto (ej. "Tienda Rápida API")
-4. Recarga la hoja de cálculo
-5. Ve al menú **🏪 Mi Tienda → Inicializar Hoja** (esto crea encabezados y formatos automáticamente)
-6. Agrega tus productos directamente en la hoja (columnas: ID, Imagen URL, Nombre, Descripción, Precio, Estado)
+## Flujo
 
-### PASO 2 — Desplegar como Web App
+- `index.html` muestra el catalogo publico.
+- `admin.html` exige clave y permite publicar productos, subir imagenes a Drive y resetear ventas.
+- Las compras usan `LockService` en Apps Script para que solo una solicitud pueda vender un producto a la vez.
+- Cada producto puede tener varias unidades. Una compra descuenta solo la cantidad pedida y el producto sigue disponible hasta que su stock llegue a 0.
+- La respuesta publica del backend no incluye comprador ni cedula; esos datos solo viajan por la accion admin `listarAdmin`.
 
-1. En Apps Script, clic en **Implementar → Nueva implementación**
-2. Tipo: **App web**
-3. Configurar:
-   - Ejecutar como: `Yo (mi cuenta)`
-   - ¿Quién tiene acceso?: `Cualquier persona`
-4. Clic en **Implementar** → **Autorizar acceso**
-5. Copia la **URL del Web App** que aparece (la necesitas en el siguiente paso)
-6. Vuelve a la hoja → **🏪 Mi Tienda → Ver URL del API** para verificarla
+## Revision de capacidad
 
-### PASO 3 — Conectar el Frontend
-
-1. Abre `frontend/app.js`
-2. Reemplaza en la primera línea de configuración:
-   ```js
-   // Antes:
-   const API_URL = "PEGA_AQUI_LA_URL_DEL_WEB_APP";
-   // Después:
-   const API_URL = "https://script.google.com/macros/s/TU_ID_AQUI/exec";
-   ```
-
-### PASO 4 — Subir a GitHub Pages
-
-1. Sube la carpeta `frontend/` a tu repositorio de GitHub
-2. Ve a tu repo → `Settings` → `Pages`
-3. Selecciona la rama `main` y la carpeta `/` (o `/frontend` si la subiste como subcarpeta)
-4. GitHub Pages te dará una URL pública para compartir
-
----
-
-## Columnas de la hoja "Productos"
-
-| Columna | Campo | Ejemplo |
-|---|---|---|
-| A | ID | 001 |
-| B | Imagen URL | https://... |
-| C | Nombre | Tablet XYZ |
-| D | Descripción | Pantalla 10" |
-| E | Precio | 200000 |
-| F | Estado | Disponible |
-| G | Comprador | (auto) |
-| H | Cédula | (auto) |
-| I | Fecha/Hora | (auto) |
-
----
-
-## Funciones del sistema
-
-- ✅ LockService para prevenir compras duplicadas simultáneas
-- ✅ Formato condicional verde/rojo automático  
-- ✅ Estadísticas de disponibles/vendidos en tiempo real
-- ✅ Imágenes con URL directas
-- ✅ Modal de compra con validación
-- ✅ Auto-refresco del catálogo tras cada compra
+Lee `AUDITORIA.md` para el diagnostico sobre 70 usuarios simultaneos, limites de GitHub Pages, Apps Script y recomendaciones operativas.

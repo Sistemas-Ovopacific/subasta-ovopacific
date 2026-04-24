@@ -2,18 +2,19 @@
    CATÁLOGO RÁPIDO - Estilos
    ============================================================ */
 :root {
-  --bg: #0f0f1a;
-  --surface: #1a1a2e;
-  --card: #16213e;
-  --accent: #e94560;
-  --accent2: #0f3460;
-  --green: #00d084;
-  --red: #ff4757;
-  --text: #e8e8f0;
-  --text-muted: #8888aa;
-  --border: rgba(255,255,255,0.08);
-  --radius: 16px;
-  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  --bg: #eef3f8;
+  --surface: #f8fafc;
+  --card: #ffffff;
+  --accent: #0b5fff;
+  --accent2: #17324d;
+  --green: #0f766e;
+  --red: #c92a2a;
+  --amber: #b45309;
+  --text: #111827;
+  --text-muted: #526071;
+  --border: #d7dee8;
+  --radius: 12px;
+  --shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,7 +28,7 @@ body {
 
 /* ── Header ── */
 header {
-  background: linear-gradient(135deg, var(--surface), var(--accent2));
+  background: linear-gradient(135deg, #17324d, #0b5fff);
   border-bottom: 1px solid var(--border);
   padding: 28px 40px;
   text-align: center;
@@ -36,13 +37,11 @@ header {
   font-size: 2.2rem;
   font-weight: 800;
   letter-spacing: -0.5px;
-  background: linear-gradient(90deg, #fff 30%, var(--accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #ffffff;
 }
 .tagline {
   margin-top: 6px;
-  color: var(--text-muted);
+  color: #e8f1ff;
   font-size: 0.95rem;
 }
 
@@ -56,7 +55,7 @@ header {
   border-bottom: 1px solid var(--border);
 }
 .btn-refresh {
-  background: var(--accent2);
+  background: var(--accent);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -66,7 +65,7 @@ header {
   font-family: inherit;
   transition: background 0.2s;
 }
-.btn-refresh:hover { background: var(--accent); }
+.btn-refresh:hover { background: var(--accent2); }
 .btn-admin {
   background: transparent;
   border: 1px solid var(--border);
@@ -151,12 +150,29 @@ main {
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
-.badge-disponible { background: var(--green); color: #000; }
+.badge-disponible { background: var(--green); color: #fff; }
 .badge-vendido { background: var(--red); color: #fff; }
 
 .card-body { padding: 18px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
 .card-body h3 { font-size: 1.1rem; font-weight: 700; }
 .card-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; flex: 1; }
+.stock-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #c7eadf;
+  background: #ecfdf5;
+  color: var(--green);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+.stock-line small {
+  color: #42675e;
+  font-weight: 700;
+}
 .card-precio {
   font-size: 1.4rem;
   font-weight: 800;
@@ -177,10 +193,10 @@ main {
   background: var(--accent);
   color: #fff;
 }
-.btn-comprar:hover { background: #c73652; transform: scale(1.02); }
+.btn-comprar:hover { background: var(--accent2); transform: scale(1.02); }
 .btn-comprar:disabled {
-  background: #333355;
-  color: var(--text-muted);
+  background: #cbd5e1;
+  color: #64748b;
   cursor: not-allowed;
   transform: none;
 }
@@ -226,6 +242,17 @@ main {
   color: var(--text-muted);
 }
 #modal-producto-info strong { color: var(--text); font-size: 1.1rem; display: block; margin-bottom: 2px; }
+#modal-producto-info small { display: block; margin-top: 4px; }
+.modal-total {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: var(--accent2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: -2px 0 16px;
+  font-weight: 800;
+  text-align: center;
+}
 
 .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
 .form-group label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
@@ -244,15 +271,15 @@ main {
 .btn-comprar-modal {
   width: 100%; padding: 14px;
   background: var(--green);
-  color: #000;
+  color: #fff;
   border: none; border-radius: 10px;
   font-size: 1rem; font-weight: 800;
   font-family: inherit; cursor: pointer;
   transition: all 0.2s;
   margin-bottom: 12px;
 }
-.btn-comprar-modal:hover { background: #00b870; }
-.btn-comprar-modal:disabled { background: #333355; color: var(--text-muted); cursor: not-allowed; }
+.btn-comprar-modal:hover { background: #0b5f59; }
+.btn-comprar-modal:disabled { background: #cbd5e1; color: #64748b; cursor: not-allowed; }
 
 #modal-mensaje {
   text-align: center;

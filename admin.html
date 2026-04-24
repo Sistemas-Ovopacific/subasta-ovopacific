@@ -18,7 +18,6 @@
       <p>Gestión de productos — <a href="index.html" style="color:var(--accent)">Ver catálogo →</a></p>
     </div>
 
-    <!-- ── Pantalla de login ── -->
     <div id="screen-login">
       <div class="login-box">
         <h2>🔐 Acceso Admin</h2>
@@ -31,10 +30,7 @@
       </div>
     </div>
 
-    <!-- ── Panel principal ── -->
     <div id="screen-admin">
-
-      <!-- Agregar producto -->
       <div class="panel">
         <h2>➕ Agregar Producto <button class="btn-logout" onclick="logout()">Salir</button></h2>
         <div class="grid-2">
@@ -44,7 +40,11 @@
           </div>
           <div class="form-group">
             <label>Precio (COP) *</label>
-            <input id="f-precio" type="number" placeholder="150000" />
+            <input id="f-precio" type="number" min="0" placeholder="150000" />
+          </div>
+          <div class="form-group">
+            <label>Cantidad *</label>
+            <input id="f-cantidad" type="number" min="1" value="1" />
           </div>
           <div class="form-group full">
             <label>Nombre del Producto *</label>
@@ -57,7 +57,7 @@
           <div class="form-group full">
             <label>Imagen del Producto</label>
             <div class="upload-area" id="upload-area" onclick="document.getElementById('f-img-file').click()"
-              ondragover="dragOver(event)" ondrop="dropFile(event)">
+              ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
               <input id="f-img-file" type="file" accept="image/*" style="display:none"
                 onchange="seleccionarImagen(this)" />
               <div id="upload-placeholder">
@@ -77,7 +77,6 @@
                 style="color:var(--text-muted); font-size:0.8rem; display:block; margin-top:4px;">Subiendo
                 imagen...</small>
             </div>
-            <!-- Campo oculto que almacena la URL resultante -->
             <input id="f-img-url" type="hidden" />
           </div>
         </div>
@@ -85,69 +84,74 @@
         <div id="msg-agregar" class="msg"></div>
       </div>
 
-      <!-- Lista de productos -->
       <div class="panel">
         <h2>📦 Productos en el Catálogo</h2>
         <div id="tabla-wrap">
           <p style="color:var(--text-muted);text-align:center">Cargando...</p>
         </div>
       </div>
-
-    </div><!-- /screen-admin -->
+    </div>
   </div>
 
+  <script src="js/config.js"></script>
   <script>
-    // ── Config ────────────────────────────────────────────
-    const API_URL = "https://script.google.com/macros/s/AKfycbzaIVzR6P4Rkz4BO_0vuC2CqBdQbpO07R7p5sM6q_uicdV75ON6N3iyxb85AHiAP4lg/exec";
+    const CONFIG = window.GARAJE_CONFIG || {};
+    const API_URL = CONFIG.API_URL || "";
+    const REQUEST_TIMEOUT_MS = CONFIG.REQUEST_TIMEOUT_MS || 15000;
 
     let claveAdmin = "";
-    let imagenUrlSubida = ""; // URL resultante tras subir a Drive
+    let imagenUrlSubida = "";
+    let productosMapAdmin = {};
 
-    // ── Login ─────────────────────────────────────────────
     async function login() {
       const clave = document.getElementById("inp-clave").value;
-      if (!clave) { setMsg("msg-login", "Ingresa la contraseña.", "err"); return; }
-      
+      if (!clave) {
+        setMsg("msg-login", "Ingresa la contraseña.", "err");
+        return;
+      }
+
       const btn = document.querySelector("#screen-login button");
       btn.disabled = true;
-      setMsg("msg-login", "⏳ Verificando credenciales...", "");
+      setMsg("msg-login", "Verificando credenciales...", "");
 
       try {
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify({ accion: "verificarClave", clave })
-        });
-        const data = await res.json();
-        
+        const data = await apiPost({ accion: "verificarClave", clave });
+
         if (data.ok) {
           claveAdmin = clave;
           document.getElementById("screen-login").style.display = "none";
           document.getElementById("screen-admin").style.display = "block";
-          cargarProductos();
+          await cargarProductos();
         } else {
-          setMsg("msg-login", data.mensaje, "err");
+          setMsg("msg-login", data.mensaje || "Contraseña incorrecta.", "err");
         }
       } catch (err) {
         setMsg("msg-login", "Error al conectar: " + err.message, "err");
+      } finally {
+        btn.disabled = false;
       }
-      
-      btn.disabled = false;
     }
 
     function logout() {
       claveAdmin = "";
       imagenUrlSubida = "";
+      productosMapAdmin = {};
       document.getElementById("screen-login").style.display = "flex";
       document.getElementById("screen-admin").style.display = "none";
       document.getElementById("inp-clave").value = "";
+      limpiarFormularioProducto();
     }
 
-    // ── Drag & Drop ────────────────────────────────────────
     function dragOver(e) {
       e.preventDefault();
       document.getElementById("upload-area").classList.add("dragover");
     }
+
+    function dragLeave(e) {
+      e.preventDefault();
+      document.getElementById("upload-area").classList.remove("dragover");
+    }
+
     function dropFile(e) {
       e.preventDefault();
       document.getElementById("upload-area").classList.remove("dragover");
@@ -155,28 +159,30 @@
       if (file) procesarArchivo(file);
     }
 
-    // ── Selección de archivo ───────────────────────────────
     function seleccionarImagen(input) {
       if (input.files && input.files[0]) procesarArchivo(input.files[0]);
     }
 
     function procesarArchivo(file) {
+      if (!claveAdmin) {
+        alert("Primero inicia sesión.");
+        return;
+      }
       if (!file.type.startsWith("image/")) {
-        alert("Por favor selecciona un archivo de imagen."); return;
+        alert("Por favor selecciona un archivo de imagen.");
+        return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        alert("La imagen supera los 5 MB."); return;
+        alert("La imagen supera los 5 MB.");
+        return;
       }
 
       const reader = new FileReader();
       reader.onload = function (e) {
-        // Mostrar preview local
         const preview = document.getElementById("img-preview");
         preview.src = e.target.result;
         preview.classList.add("visible");
         document.getElementById("upload-area").classList.add("has-image");
-
-        // Subir a Drive
         subirADrive(file, e.target.result);
       };
       reader.readAsDataURL(file);
@@ -189,182 +195,275 @@
       const btnAgregar = document.getElementById("btn-agregar");
 
       progressWrap.style.display = "block";
+      bar.style.background = "var(--green)";
       bar.style.width = "20%";
       status.textContent = "Subiendo imagen a Google Drive...";
+      status.style.color = "var(--text-muted)";
       btnAgregar.disabled = true;
       imagenUrlSubida = "";
-
-      // Extraer base64 puro (sin encabezado data:...;base64,)
-      const base64 = dataUrl.split(",")[1];
-
-      bar.style.width = "50%";
+      document.getElementById("f-img-url").value = "";
 
       try {
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify({
-            accion: "subirImagen",
-            clave: claveAdmin,
-            base64,
-            mimeType: file.type,
-            nombreArchivo: file.name
-          })
+        const base64 = dataUrl.split(",")[1];
+        bar.style.width = "50%";
+
+        const data = await apiPost({
+          accion: "subirImagen",
+          clave: claveAdmin,
+          base64,
+          mimeType: file.type,
+          nombreArchivo: file.name
         });
 
-        bar.style.width = "80%";
-        const data = await res.json();
-
+        bar.style.width = "100%";
         if (data.ok) {
-          imagenUrlSubida = data.url;
-          bar.style.width = "100%";
-          status.textContent = "✅ Imagen subida correctamente";
+          imagenUrlSubida = data.url || "";
+          document.getElementById("f-img-url").value = imagenUrlSubida;
+          status.textContent = "Imagen subida correctamente";
           status.style.color = "var(--green)";
-          btnAgregar.disabled = false;
         } else {
-          bar.style.width = "100%";
           bar.style.background = "var(--red)";
-          status.textContent = "❌ " + data.mensaje;
+          status.textContent = data.mensaje || "No fue posible subir la imagen.";
           status.style.color = "var(--red)";
-          btnAgregar.disabled = false;
         }
       } catch (err) {
         bar.style.background = "var(--red)";
-        status.textContent = "❌ Error de conexión: " + err.message;
+        status.textContent = "Error de conexión: " + err.message;
         status.style.color = "var(--red)";
+      } finally {
         btnAgregar.disabled = false;
       }
     }
 
-    // ── Agregar producto ───────────────────────────────────
     async function agregarProducto() {
       const btn = document.getElementById("btn-agregar");
       const id = document.getElementById("f-id").value.trim();
       const nombre = document.getElementById("f-nombre").value.trim();
-      const precio = document.getElementById("f-precio").value.trim();
+      const precio = Number(document.getElementById("f-precio").value);
+      const cantidad = Number(document.getElementById("f-cantidad").value);
 
-      if (!id || !nombre || !precio) {
-        setMsg("msg-agregar", "ID, Nombre y Precio son obligatorios.", "err"); return;
+      if (!id || !nombre || !Number.isFinite(precio) || !Number.isInteger(cantidad) || cantidad < 1) {
+        setMsg("msg-agregar", "ID, nombre, precio y cantidad válida son obligatorios.", "err");
+        return;
       }
 
       btn.disabled = true;
-      setMsg("msg-agregar", "⏳ Publicando producto...", "");
+      setMsg("msg-agregar", "Publicando producto...", "");
 
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify({
+      try {
+        const data = await apiPost({
           accion: "agregarProducto",
           clave: claveAdmin,
           id,
           nombre,
           descripcion: document.getElementById("f-desc").value.trim(),
-          precio: parseFloat(precio),
+          precio,
+          cantidad,
           imagenUrl: imagenUrlSubida
-        })
-      });
+        });
 
-      const data = await res.json();
-      setMsg("msg-agregar", data.mensaje, data.ok ? "ok" : "err");
-      btn.disabled = false;
+        setMsg("msg-agregar", data.mensaje || (data.ok ? "Producto publicado." : "No fue posible publicar."), data.ok ? "ok" : "err");
 
-      if (data.ok) {
-        // Limpiar formulario
-        ["f-id", "f-nombre", "f-desc", "f-precio"].forEach(id => document.getElementById(id).value = "");
-        imagenUrlSubida = "";
-        document.getElementById("img-preview").classList.remove("visible");
-        document.getElementById("img-preview").src = "";
-        document.getElementById("upload-area").classList.remove("has-image");
-        document.getElementById("upload-progress-wrap").style.display = "none";
-        document.getElementById("f-img-file").value = "";
-        cargarProductos();
-      } else if (data.mensaje.includes("Clave")) {
-        setTimeout(logout, 1500);
+        if (data.ok) {
+          limpiarFormularioProducto();
+          await cargarProductos();
+        } else if ((data.mensaje || "").toLowerCase().includes("clave")) {
+          setTimeout(logout, 1500);
+        }
+      } catch (err) {
+        setMsg("msg-agregar", "Error de conexión: " + err.message, "err");
+      } finally {
+        btn.disabled = false;
       }
     }
 
-    // ── Escapar HTML (XSS prevention) ──────────────────────
-    function escHtml(str) {
-      if (!str) return "";
-      return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-    }
-
-    let productosMapAdmin = {};
-
-    // ── Resetear producto ──────────────────────────────────
     async function resetear(rowIndex) {
       const producto = productosMapAdmin[rowIndex];
       if (!producto) return;
 
       if (!confirm(`¿Volver a poner "${producto.nombre}" como Disponible?`)) return;
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify({ accion: "resetear", clave: claveAdmin, rowIndex })
-      });
-      const data = await res.json();
-      alert(data.mensaje);
-      if (data.ok) cargarProductos();
+
+      try {
+        const data = await apiPost({
+          accion: "resetear",
+          clave: claveAdmin,
+          id: producto.id,
+          rowIndex
+        });
+        alert(data.mensaje || (data.ok ? "Producto reseteado." : "No fue posible resetear."));
+        if (data.ok) await cargarProductos();
+        if (!data.ok && (data.mensaje || "").toLowerCase().includes("clave")) logout();
+      } catch (err) {
+        alert("Error de conexión: " + err.message);
+      }
     }
 
-    // ── Cargar lista ───────────────────────────────────────
     async function cargarProductos() {
       const wrap = document.getElementById("tabla-wrap");
       wrap.innerHTML = `<p style="color:var(--text-muted);text-align:center">Cargando...</p>`;
+
       try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
-        if (!data.ok) throw new Error(data.error);
+        const data = await cargarProductosAdmin();
+        if (!data.ok) throw new Error(data.mensaje || data.error || "Error desconocido");
 
         productosMapAdmin = {};
-        data.productos.forEach(p => { productosMapAdmin[p.rowIndex] = p; });
+        const productos = (data.productos || []).map(normalizarProductoAdmin);
+        productos.forEach(p => { productosMapAdmin[p.rowIndex] = p; });
 
-        renderTabla(data.productos);
+        renderTabla(productos);
       } catch (e) {
-        wrap.innerHTML = `<p style="color:var(--red)">Error: ${e.message}</p>`;
+        wrap.innerHTML = `<p style="color:var(--red)"></p>`;
+        wrap.querySelector("p").textContent = "Error: " + e.message;
       }
+    }
+
+    async function cargarProductosAdmin() {
+      const data = await apiPost({ accion: "listarAdmin", clave: claveAdmin });
+      if (data.ok) return data;
+
+      // Compatibilidad temporal con el Apps Script anterior, que solo tenia GET publico.
+      const legacyData = await apiGet();
+      if (legacyData.ok) return legacyData;
+
+      return data;
     }
 
     function renderTabla(productos) {
       const wrap = document.getElementById("tabla-wrap");
-      if (!productos.length) { wrap.innerHTML = `<p style="color:var(--text-muted);text-align:center">No hay productos aún.</p>`; return; }
+      if (!productos.length) {
+        wrap.innerHTML = `<p style="color:var(--text-muted);text-align:center">No hay productos aún.</p>`;
+        return;
+      }
 
       wrap.innerHTML = `
       <table class="product-table">
         <thead><tr>
-          <th>Img</th><th>Nombre</th><th>Precio</th><th>Estado</th><th>Acciones</th>
+          <th>Img</th><th>Nombre</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Acciones</th>
         </tr></thead>
         <tbody>
-          ${productos.map(p => `
+          ${productos.map(p => {
+            const vendido = p.estado === "Vendido";
+            const rowIndex = Number.isFinite(p.rowIndex) ? p.rowIndex : 0;
+            const comprador = vendido && p.comprador
+              ? `<br><small style="color:var(--text-muted)">🙋‍♂️ ${escHtml(p.comprador)} (${escHtml(p.cedula)})<br>🕒 ${escHtml(p.fecha)}</small>`
+              : "";
+
+            return `
             <tr>
-              <td>${p.imagenUrl ? `<img src="${p.imagenUrl}" onerror="this.style.display='none'">` : `<div class="no-img">🛍️</div>`}</td>
-              <td><strong>${escHtml(p.nombre)}</strong><br><small style="color:var(--text-muted)">${escHtml(p.descripcion) || ''}</small></td>
+              <td>${p.imagenUrl ? `<img src="${escAttr(p.imagenUrl)}" alt="">` : `<div class="no-img">🛍️</div>`}</td>
+              <td><strong>${escHtml(p.nombre)}</strong><br><small style="color:var(--text-muted)">${escHtml(p.descripcion)}</small></td>
               <td>${formatCOP(p.precio)}</td>
+              <td><strong>${p.cantidadDisponible}</strong><br><small style="color:var(--text-muted)">de ${p.cantidadInicial}</small></td>
               <td>
-                <span class="status-dot ${p.estado === 'Vendido' ? 'dot-sold' : 'dot-ok'}"></span>${p.estado}
-                ${p.estado === 'Vendido' && p.comprador ? `<br><small style="color:var(--text-muted)">🙋‍♂️ ${escHtml(p.comprador)} (${escHtml(p.cedula)})<br>🕒 ${p.fecha}</small>` : ''}
+                <span class="status-dot ${vendido ? "dot-sold" : "dot-ok"}"></span>${escHtml(p.estado)}
+                ${comprador}
               </td>
-              <td>${p.estado === 'Vendido' ? `<button class="btn-sm btn-reset" onclick="resetear(${p.rowIndex})">🔄 Resetear</button>` : '—'}</td>
-            </tr>`).join("")}
+              <td>${vendido ? `<button class="btn-sm btn-reset" onclick="resetear(${rowIndex})">🔄 Resetear</button>` : "—"}</td>
+            </tr>`;
+          }).join("")}
         </tbody>
       </table>`;
     }
 
+    function limpiarFormularioProducto() {
+      ["f-id", "f-nombre", "f-desc", "f-precio"].forEach(id => document.getElementById(id).value = "");
+      document.getElementById("f-cantidad").value = "1";
+      imagenUrlSubida = "";
+      document.getElementById("f-img-url").value = "";
+      document.getElementById("img-preview").classList.remove("visible");
+      document.getElementById("img-preview").src = "";
+      document.getElementById("upload-area").classList.remove("has-image");
+      document.getElementById("upload-progress-wrap").style.display = "none";
+      document.getElementById("f-img-file").value = "";
+    }
+
+    async function apiGet() {
+      const separator = API_URL.includes("?") ? "&" : "?";
+      return requestJson(`${API_URL}${separator}_=${Date.now()}`, {
+        method: "GET",
+        cache: "no-store"
+      });
+    }
+
+    async function apiPost(payload) {
+      if (!API_URL) throw new Error("Falta configurar la URL del API.");
+      return requestJson(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload),
+        cache: "no-store"
+      });
+    }
+
+    async function requestJson(url, options) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+      try {
+        const res = await fetch(url, { ...options, signal: controller.signal });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return await res.json();
+      } catch (err) {
+        if (err.name === "AbortError") throw new Error("Tiempo de espera agotado");
+        throw err;
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    function normalizarProductoAdmin(p) {
+      return {
+        id: String(p.id || "").trim(),
+        imagenUrl: String(p.imagenUrl || "").trim(),
+        nombre: String(p.nombre || "Sin nombre").trim(),
+        descripcion: String(p.descripcion || "").trim(),
+        precio: p.precio,
+        estado: String(p.estado || "Disponible").trim(),
+        cantidadDisponible: normalizarCantidad(p.cantidadDisponible, p.estado),
+        cantidadInicial: normalizarCantidadInicial(p.cantidadInicial, p.cantidadDisponible, p.estado),
+        comprador: String(p.comprador || "").trim(),
+        cedula: String(p.cedula || "").trim(),
+        fecha: String(p.fecha || "").trim(),
+        rowIndex: Number(p.rowIndex)
+      };
+    }
+
+    function normalizarCantidad(cantidad, estado) {
+      const value = Number(cantidad);
+      if (Number.isFinite(value)) return Math.max(0, Math.floor(value));
+      return String(estado || "") === "Vendido" ? 0 : 1;
+    }
+
+    function normalizarCantidadInicial(cantidadInicial, cantidadDisponible, estado) {
+      const value = Number(cantidadInicial);
+      if (Number.isFinite(value) && value > 0) return Math.floor(value);
+      return Math.max(1, normalizarCantidad(cantidadDisponible, estado));
+    }
+
+    function escHtml(str) {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function escAttr(str) {
+      return escHtml(str).replace(/`/g, "&#96;");
+    }
+
     function formatCOP(v) {
-      if (!v && v !== 0) return "—";
+      if (v === null || v === undefined || v === "") return "—";
       return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
     }
 
     function setMsg(id, text, type) {
       const el = document.getElementById(id);
-      el.innerHTML = text;
-      el.className = "msg " + type;
+      el.textContent = text;
+      el.className = "msg " + (type || "");
     }
-
   </script>
 </body>
 

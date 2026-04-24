@@ -1,5 +1,5 @@
-# Ignorar el backend (va directo a Google Apps Script, no a GitHub)
-backend/
+# No subir archivos locales con secretos de Apps Script
+backend/*.local.gs
 
 # Sistema
 .DS_Store
