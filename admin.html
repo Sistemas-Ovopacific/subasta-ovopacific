@@ -319,12 +319,8 @@
 
     async function cargarProductosAdmin() {
       const data = await apiPost({ accion: "listarAdmin", clave: claveAdmin });
-      if (data.ok) return data;
-
-      // Compatibilidad temporal con el Apps Script anterior, que solo tenia GET publico.
-      const legacyData = await apiGet();
-      if (legacyData.ok) return legacyData;
-
+      // Eliminamos el fallback a apiGet() para que si falla el admin, sepamos por qué (ej. clave incorrecta)
+      // y no nos muestre datos públicos por error.
       return data;
     }
 
@@ -344,7 +340,8 @@
           ${productos.map(p => {
             const vendido = p.estado === "Vendido";
             const rowIndex = Number.isFinite(p.rowIndex) ? p.rowIndex : 0;
-            const comprador = vendido && p.comprador
+            // Mostramos el comprador si existe el dato, aunque no esté totalmente vendido
+            const comprador = p.comprador
               ? `<br><small style="color:var(--text-muted)">🙋‍♂️ ${escHtml(p.comprador)} (${escHtml(p.cedula)})<br>🕒 ${escHtml(p.fecha)}</small>`
               : "";
 
