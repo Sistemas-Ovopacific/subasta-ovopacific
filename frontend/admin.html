@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚙️ Admin — Tienda Rápida</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Estilos exclusivos del admin ── */
+    .admin-wrap {
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 0 20px 60px;
+    }
+
+    .admin-header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .admin-header h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+
+    .admin-header p {
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* Pantalla de login */
+    #screen-login {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      gap: 16px;
+    }
+
+    #screen-admin {
+      display: none;
+    }
+
+    .login-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+    }
+
+    .login-box h2 {
+      font-size: 1.3rem;
+      margin-bottom: 20px;
+    }
+
+    /* Panel */
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 28px;
+    }
+
+    .panel h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .form-group label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 11px 14px;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      resize: vertical;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .img-preview {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-top: 10px;
+      display: none;
+      background: var(--surface);
+    }
+
+    .img-preview.visible {
+      display: block;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 13px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+
+    .btn-primary:hover {
+      background: #c73652;
+    }
+
+    .btn-primary:disabled {
+      background: #333355;
+      color: var(--text-muted);
+      cursor: not-allowed;
+    }
+
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s;
+    }
+
+    .btn-reset {
+      background: #ff475733;
+      color: var(--red);
+    }
+
+    .btn-reset:hover {
+      background: #ff475766;
+    }
+
+    .msg {
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+      min-height: 22px;
+      margin-top: 10px;
+    }
+
+    .msg.ok {
+      color: var(--green);
+    }
+
+    .msg.err {
+      color: var(--red);
+    }
+
+    /* Tabla de productos */
+    .product-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .product-table th {
+      text-align: left;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .product-table td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .product-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .product-table img {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+
+    .no-img {
+      width: 48px;
+      height: 48px;
+      background: var(--surface);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+
+    .dot-ok {
+      background: var(--green);
+    }
+
+    .dot-sold {
+      background: var(--red);
+    }
+
+    .btn-logout {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 8px;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+      float: right;
+      margin-top: -4px;
+    }
+
+    .btn-logout:hover {
+      color: var(--text);
+    }
+
+    .upload-area {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .upload-area:hover,
+    .upload-area.dragover {
+      border-color: var(--accent);
+      background: rgba(233, 69, 96, 0.05);
+    }
+
+    .upload-area.has-image {
+      padding: 0;
+      border-style: solid;
+    }
+
+    .upload-area.has-image #upload-placeholder {
+      display: none;
+    }
+
+    #upload-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .img-preview {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .img-preview.visible {
+      display: block;
+    }
+
+    @media (max-width: 600px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="admin-wrap">
+    <div class="admin-header">
+      <h1>⚙️ Panel de Administración</h1>
+      <p>Gestión de productos — <a href="index.html" style="color:var(--accent)">Ver catálogo →</a></p>
+    </div>
+
+    <!-- ── Pantalla de login ── -->
+    <div id="screen-login">
+      <div class="login-box">
+        <h2>🔐 Acceso Admin</h2>
+        <div class="form-group" style="margin-bottom:14px">
+          <label for="inp-clave">Contraseña</label>
+          <input id="inp-clave" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()" />
+        </div>
+        <button class="btn-primary" onclick="login()">Entrar</button>
+        <div id="msg-login" class="msg" style="margin-top:12px"></div>
+      </div>
+    </div>
+
+    <!-- ── Panel principal ── -->
+    <div id="screen-admin">
+
+      <!-- Agregar producto -->
+      <div class="panel">
+        <h2>➕ Agregar Producto <button class="btn-logout" onclick="logout()">Salir</button></h2>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>ID del Producto *</label>
+            <input id="f-id" type="text" placeholder="001" />
+          </div>
+          <div class="form-group">
+            <label>Precio (COP) *</label>
+            <input id="f-precio" type="number" placeholder="150000" />
+          </div>
+          <div class="form-group full">
+            <label>Nombre del Producto *</label>
+            <input id="f-nombre" type="text" placeholder="Tablet Samsung A7" />
+          </div>
+          <div class="form-group full">
+            <label>Descripción</label>
+            <input id="f-desc" type="text" placeholder="Pantalla 10.4&quot;, 64GB, WiFi" />
+          </div>
+          <div class="form-group full">
+            <label>Imagen del Producto</label>
+            <div class="upload-area" id="upload-area" onclick="document.getElementById('f-img-file').click()"
+              ondragover="dragOver(event)" ondrop="dropFile(event)">
+              <input id="f-img-file" type="file" accept="image/*" style="display:none"
+                onchange="seleccionarImagen(this)" />
+              <div id="upload-placeholder">
+                <span style="font-size:2rem">📁</span>
+                <p>Haz clic o arrastra una imagen aquí</p>
+                <small style="color:var(--text-muted)">JPG, PNG, WEBP — máx. 5 MB</small>
+              </div>
+              <img id="img-preview" class="img-preview" alt="Vista previa" />
+            </div>
+            <div id="upload-progress-wrap" style="display:none; margin-top:8px;">
+              <div style="height:6px; background:var(--border); border-radius:99px; overflow:hidden;">
+                <div id="upload-bar"
+                  style="height:100%; width:0%; background:var(--green); border-radius:99px; transition:width 0.3s;">
+                </div>
+              </div>
+              <small id="upload-status"
+                style="color:var(--text-muted); font-size:0.8rem; display:block; margin-top:4px;">Subiendo
+                imagen...</small>
+            </div>
+            <!-- Campo oculto que almacena la URL resultante -->
+            <input id="f-img-url" type="hidden" />
+          </div>
+        </div>
+        <button id="btn-agregar" class="btn-primary" onclick="agregarProducto()">✅ Publicar Producto</button>
+        <div id="msg-agregar" class="msg"></div>
+      </div>
+
+      <!-- Lista de productos -->
+      <div class="panel">
+        <h2>📦 Productos en el Catálogo</h2>
+        <div id="tabla-wrap">
+          <p style="color:var(--text-muted);text-align:center">Cargando...</p>
+        </div>
+      </div>
+
+    </div><!-- /screen-admin -->
+  </div>
+
+  <script>
+    // ── Config ────────────────────────────────────────────
+    const API_URL = "https://script.google.com/macros/s/AKfycbz_kncGQ1O3avUgsqHkmA_DyIXUMtATfAig1l-IzytOVzPLQMNeBaO7dDADET4tcOGFww/exec";
+
+    let claveAdmin = "";
+    let imagenUrlSubida = ""; // URL resultante tras subir a Drive
+
+    // ── Login ─────────────────────────────────────────────
+    function login() {
+      const clave = document.getElementById("inp-clave").value;
+      if (!clave) { setMsg("msg-login", "Ingresa la contraseña.", "err"); return; }
+      claveAdmin = clave;
+      document.getElementById("screen-login").style.display = "none";
+      document.getElementById("screen-admin").style.display = "block";
+      cargarProductos();
+    }
+
+    function logout() {
+      claveAdmin = "";
+      imagenUrlSubida = "";
+      document.getElementById("screen-login").style.display = "flex";
+      document.getElementById("screen-admin").style.display = "none";
+      document.getElementById("inp-clave").value = "";
+    }
+
+    // ── Drag & Drop ────────────────────────────────────────
+    function dragOver(e) {
+      e.preventDefault();
+      document.getElementById("upload-area").classList.add("dragover");
+    }
+    function dropFile(e) {
+      e.preventDefault();
+      document.getElementById("upload-area").classList.remove("dragover");
+      const file = e.dataTransfer.files[0];
+      if (file) procesarArchivo(file);
+    }
+
+    // ── Selección de archivo ───────────────────────────────
+    function seleccionarImagen(input) {
+      if (input.files && input.files[0]) procesarArchivo(input.files[0]);
+    }
+
+    function procesarArchivo(file) {
+      if (!file.type.startsWith("image/")) {
+        alert("Por favor selecciona un archivo de imagen."); return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert("La imagen supera los 5 MB."); return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        // Mostrar preview local
+        const preview = document.getElementById("img-preview");
+        preview.src = e.target.result;
+        preview.classList.add("visible");
+        document.getElementById("upload-area").classList.add("has-image");
+
+        // Subir a Drive
+        subirADrive(file, e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function subirADrive(file, dataUrl) {
+      const progressWrap = document.getElementById("upload-progress-wrap");
+      const bar = document.getElementById("upload-bar");
+      const status = document.getElementById("upload-status");
+      const btnAgregar = document.getElementById("btn-agregar");
+
+      progressWrap.style.display = "block";
+      bar.style.width = "20%";
+      status.textContent = "Subiendo imagen a Google Drive...";
+      btnAgregar.disabled = true;
+      imagenUrlSubida = "";
+
+      // Extraer base64 puro (sin encabezado data:...;base64,)
+      const base64 = dataUrl.split(",")[1];
+
+      bar.style.width = "50%";
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            accion: "subirImagen",
+            clave: claveAdmin,
+            base64,
+            mimeType: file.type,
+            nombreArchivo: file.name
+          })
+        });
+
+        bar.style.width = "80%";
+        const data = await res.json();
+
+        if (data.ok) {
+          imagenUrlSubida = data.url;
+          bar.style.width = "100%";
+          status.textContent = "✅ Imagen subida correctamente";
+          status.style.color = "var(--green)";
+          btnAgregar.disabled = false;
+        } else {
+          bar.style.width = "100%";
+          bar.style.background = "var(--red)";
+          status.textContent = "❌ " + data.mensaje;
+          status.style.color = "var(--red)";
+          btnAgregar.disabled = false;
+        }
+      } catch (err) {
+        bar.style.background = "var(--red)";
+        status.textContent = "❌ Error de conexión: " + err.message;
+        status.style.color = "var(--red)";
+        btnAgregar.disabled = false;
+      }
+    }
+
+    // ── Agregar producto ───────────────────────────────────
+    async function agregarProducto() {
+      const btn = document.getElementById("btn-agregar");
+      const id = document.getElementById("f-id").value.trim();
+      const nombre = document.getElementById("f-nombre").value.trim();
+      const precio = document.getElementById("f-precio").value.trim();
+
+      if (!id || !nombre || !precio) {
+        setMsg("msg-agregar", "ID, Nombre y Precio son obligatorios.", "err"); return;
+      }
+
+      btn.disabled = true;
+      setMsg("msg-agregar", "⏳ Publicando producto...", "");
+
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({
+          accion: "agregarProducto",
+          clave: claveAdmin,
+          id,
+          nombre,
+          descripcion: document.getElementById("f-desc").value.trim(),
+          precio: parseFloat(precio),
+          imagenUrl: imagenUrlSubida
+        })
+      });
+
+      const data = await res.json();
+      setMsg("msg-agregar", data.mensaje, data.ok ? "ok" : "err");
+      btn.disabled = false;
+
+      if (data.ok) {
+        // Limpiar formulario
+        ["f-id", "f-nombre", "f-desc", "f-precio"].forEach(id => document.getElementById(id).value = "");
+        imagenUrlSubida = "";
+        document.getElementById("img-preview").classList.remove("visible");
+        document.getElementById("img-preview").src = "";
+        document.getElementById("upload-area").classList.remove("has-image");
+        document.getElementById("upload-progress-wrap").style.display = "none";
+        document.getElementById("f-img-file").value = "";
+        cargarProductos();
+      } else if (data.mensaje.includes("Clave")) {
+        setTimeout(logout, 1500);
+      }
+    }
+
+    // ── Resetear producto ──────────────────────────────────
+    async function resetear(rowIndex, nombre) {
+      if (!confirm(`¿Volver a poner "${nombre}" como Disponible?`)) return;
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ accion: "resetear", clave: claveAdmin, rowIndex })
+      });
+      const data = await res.json();
+      alert(data.mensaje);
+      if (data.ok) cargarProductos();
+    }
+
+    // ── Cargar lista ───────────────────────────────────────
+    async function cargarProductos() {
+      const wrap = document.getElementById("tabla-wrap");
+      wrap.innerHTML = `<p style="color:var(--text-muted);text-align:center">Cargando...</p>`;
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        renderTabla(data.productos);
+      } catch (e) {
+        wrap.innerHTML = `<p style="color:var(--red)">Error: ${e.message}</p>`;
+      }
+    }
+
+    function renderTabla(productos) {
+      const wrap = document.getElementById("tabla-wrap");
+      if (!productos.length) { wrap.innerHTML = `<p style="color:var(--text-muted);text-align:center">No hay productos aún.</p>`; return; }
+
+      wrap.innerHTML = `
+      <table class="product-table">
+        <thead><tr>
+          <th>Img</th><th>Nombre</th><th>Precio</th><th>Estado</th><th>Acciones</th>
+        </tr></thead>
+        <tbody>
+          ${productos.map(p => `
+            <tr>
+              <td>${p.imagenUrl ? `<img src="${p.imagenUrl}" onerror="this.style.display='none'">` : `<div class="no-img">🛍️</div>`}</td>
+              <td><strong>${p.nombre}</strong><br><small style="color:var(--text-muted)">${p.descripcion || ''}</small></td>
+              <td>${formatCOP(p.precio)}</td>
+              <td><span class="status-dot ${p.estado === 'Vendido' ? 'dot-sold' : 'dot-ok'}"></span>${p.estado}</td>
+              <td>${p.estado === 'Vendido' ? `<button class="btn-sm btn-reset" onclick="resetear(${p.rowIndex}, '${p.nombre.replace(/'/g, "\\'")}')">🔄 Resetear</button>` : '—'}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>`;
+    }
+
+    function formatCOP(v) {
+      if (!v && v !== 0) return "—";
+      return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
+    }
+
+    function setMsg(id, text, type) {
+      const el = document.getElementById(id);
+      el.innerHTML = text;
+      el.className = "msg " + type;
+    }
+  </script>
+</body>
+
+</html>

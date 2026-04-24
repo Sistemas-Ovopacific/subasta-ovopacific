@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🏪 Tienda Rápida</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-inner">
+      <div class="logo">⚡ Tienda Rápida</div>
+      <p class="tagline">El más rápido se lleva el producto — ¡Solo uno por artículo!</p>
+    </div>
+  </header>
+
+  <!-- Controles -->
+  <div class="toolbar">
+    <button class="btn-refresh" onclick="cargarProductos()">🔄 Actualizar</button>
+    <div class="stats">
+      <span id="stat-disponibles">— disponibles</span>
+      <span id="stat-vendidos">— vendidos</span>
+    </div>
+    <a href="admin.html" class="btn-admin">⚙️ Admin</a>
+  </div>
+
+  <!-- Grid de productos -->
+  <main id="catalogo">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Cargando productos...</p>
+    </div>
+  </main>
+
+  <!-- Modal de compra -->
+  <div id="modal-overlay" class="modal-overlay hidden" onclick="cerrarModal(event)">
+    <div class="modal">
+      <button class="modal-close" onclick="_cerrarModal()">✕</button>
+      <h2>Confirmar Compra</h2>
+      <div id="modal-producto-info"></div>
+
+      <div class="form-group">
+        <label for="inp-nombre">Nombre Completo</label>
+        <input id="inp-nombre" type="text" placeholder="Juan Pérez" autocomplete="name"/>
+      </div>
+      <div class="form-group">
+        <label for="inp-cedula">Cédula / ID</label>
+        <input id="inp-cedula" type="text" placeholder="123456789" autocomplete="off"/>
+      </div>
+
+      <button id="btn-confirmar" class="btn-comprar-modal" onclick="confirmarCompra()">
+        ✅ Confirmar Compra
+      </button>
+      <div id="modal-mensaje"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

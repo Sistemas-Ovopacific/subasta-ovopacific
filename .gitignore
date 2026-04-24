@@ -1,0 +1,7 @@
+# Ignorar el backend (va directo a Google Apps Script, no a GitHub)
+backend/
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.log
