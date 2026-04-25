@@ -165,20 +165,25 @@
         if (!data.ok) throw new Error();
 
         container.innerHTML = data.productos.map(p => {
+          const nombre = escHtml(p.nombre);
+          const desc = escHtml(p.descripcion || "—");
+          const precio = formatCOP(p.precio);
+          const img = escAttr(p.imagenUrl);
+
           return `
             <div class="card">
               <div class="card-img-wrap">
-                <img src="${p.imagenUrl || ''}" alt="${p.nombre}" 
-                     onclick="abrirLightbox('${p.imagenUrl}')"
+                <img src="${img}" alt="${nombre}" 
+                     onclick="abrirLightbox('${img}')"
                      onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                 <span class="img-placeholder" style="display:none">🛍️</span>
               </div>
               <span class="badge badge-disponible">Próximamente</span>
               <div class="card-body">
-                <h3>${p.nombre}</h3>
-                <p class="card-desc">${p.descripcion || "—"}</p>
+                <h3>${nombre}</h3>
+                <p class="card-desc">${desc}</p>
                 <div class="stock-line"><span>${p.cantidadDisponible} unidades</span></div>
-                <p class="card-precio">$${Number(p.precio).toLocaleString()}</p>
+                <p class="card-precio">${precio}</p>
               </div>
               <div class="btn-locked">🔒 Bloqueado</div>
             </div>
@@ -187,6 +192,23 @@
       } catch (err) {
         container.innerHTML = `<div class="loading"><p>Error al cargar la preventa.</p></div>`;
       }
+    }
+
+    /* ── Utilidades de Seguridad y Formato ── */
+    function escHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+
+    function escAttr(str) {
+      return escHtml(str).replace(/`/g, "&#96;");
+    }
+
+    function formatCOP(v) {
+      if (v === null || v === undefined || v === "") return "—";
+      return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
     }
 
     /* ── Lógica de Lightbox ── */
