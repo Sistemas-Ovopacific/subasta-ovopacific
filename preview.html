@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -21,17 +22,19 @@
       align-items: center;
       gap: 10px;
       border-bottom: 3px solid var(--accent);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
-    .countdown-item { 
-      font-family: 'Courier New', monospace; 
+
+    .countdown-item {
+      font-family: 'Courier New', monospace;
       color: #38bdf8;
-      background: rgba(0,0,0,0.3);
+      background: rgba(0, 0, 0, 0.3);
       padding: 5px 15px;
       border-radius: 8px;
       font-size: 2.2rem;
       letter-spacing: 2px;
     }
+
     .btn-locked {
       margin: 0 18px 18px;
       padding: 13px;
@@ -43,21 +46,39 @@
       text-align: center;
       cursor: not-allowed;
     }
-    .card-img-wrap img { cursor: zoom-in; }
+
+    .card-img-wrap img {
+      cursor: zoom-in;
+    }
 
     /* ── Lightbox (Vista previa de imagen) ── */
     .lightbox-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.85);
-      display: flex; align-items: center; justify-content: center;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       z-index: 200;
       backdrop-filter: blur(8px);
       padding: 20px;
       cursor: zoom-out;
       animation: fadeIn 0.3s ease;
     }
-    .hidden { display: none !important; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
 
     .lightbox-content {
       position: relative;
@@ -67,25 +88,40 @@
       align-items: center;
       justify-content: center;
     }
+
     .lightbox-content img {
       max-width: 100%;
       max-height: 90vh;
       border-radius: 8px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
       transform: scale(0.95);
       animation: zoomIn 0.3s ease forwards;
     }
-    @keyframes zoomIn { to { transform: scale(1); } }
+
+    @keyframes zoomIn {
+      to {
+        transform: scale(1);
+      }
+    }
 
     .lightbox-close {
-      position: absolute; top: -40px; right: 0;
-      background: transparent; border: none; color: #fff;
-      font-size: 2rem; cursor: pointer;
+      position: absolute;
+      top: -40px;
+      right: 0;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 2rem;
+      cursor: pointer;
       transition: transform 0.2s;
     }
-    .lightbox-close:hover { transform: scale(1.2); }
+
+    .lightbox-close:hover {
+      transform: scale(1.2);
+    }
   </style>
 </head>
+
 <body>
 
   <!-- Header (Igual que index.html) -->
@@ -131,8 +167,8 @@
     /* AJUSTA LA FECHA DE APERTURA AQUÍ                             */
     /* Formato: "Año-Mes-DíaTHora:Minuto:Segundo"                     */
     /* ============================================================ */
-    const FECHA_APERTURA = "2026-04-27T08:30:00"; 
-    
+    const FECHA_APERTURA = "2026-04-27T12:30:00";
+
     const OPENING_TIME = new Date(FECHA_APERTURA).getTime();
 
     function updateTimer() {
@@ -150,8 +186,8 @@
       const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const s = Math.floor((diff % (1000 * 60)) / 1000);
 
-      document.getElementById("countdown-timer").textContent = 
-        `${d}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+      document.getElementById("countdown-timer").textContent =
+        `${d}d ${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
     }
 
     setInterval(updateTimer, 1000);
@@ -160,7 +196,14 @@
     async function loadPreview() {
       const container = document.getElementById("preview-catalogo");
       try {
-        const res = await fetch(window.GARAJE_CONFIG.API_URL);
+        const separator = window.GARAJE_CONFIG.API_URL.includes("?") ? "&" : "?";
+        const urlWithCacheBuster = `${window.GARAJE_CONFIG.API_URL}${separator}_=${Date.now()}`;
+        
+        const res = await fetch(urlWithCacheBuster, {
+          method: "GET",
+          cache: "no-store",
+          headers: { "Pragma": "no-cache", "Cache-Control": "no-cache" }
+        });
         const data = await res.json();
         if (!data.ok) throw new Error();
 
@@ -239,4 +282,5 @@
     loadPreview();
   </script>
 </body>
+
 </html>
