@@ -12,7 +12,7 @@ const SHEET_NAME = 'Productos';
 const ADMIN_PASSWORD_PROPERTY = 'ADMIN_PASSWORD';
 const SPREADSHEET_ID_PROPERTY = 'SPREADSHEET_ID';
 const PUBLIC_CACHE_KEY = 'productos_publicos_v2';
-const PUBLIC_CACHE_SECONDS = 10;
+const PUBLIC_CACHE_SECONDS = 5;
 const PURCHASES_SHEET_NAME = 'Compras';
 const HEADERS = [
   'ID',

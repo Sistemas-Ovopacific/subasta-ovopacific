@@ -7,7 +7,7 @@ const API_URL = CONFIG.API_URL || "";
 const REQUEST_TIMEOUT_MS = CONFIG.REQUEST_TIMEOUT_MS || 15000;
 const COMPRA_MAX_REINTENTOS = 3;
 const PRODUCTOS_CACHE_KEY = "garaje_productos_publicos_v2";
-const PRODUCTOS_CACHE_TTL_MS = 15 * 1000;
+const PRODUCTOS_CACHE_TTL_MS = 2 * 1000;
 
 let productosMap = {};
 let cargandoProductos = false;
