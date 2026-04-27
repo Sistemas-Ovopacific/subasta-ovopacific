@@ -201,8 +201,7 @@
         
         const res = await fetch(urlWithCacheBuster, {
           method: "GET",
-          cache: "no-store",
-          headers: { "Pragma": "no-cache", "Cache-Control": "no-cache" }
+          cache: "no-store"
         });
         const data = await res.json();
         if (!data.ok) throw new Error();
